@@ -1,0 +1,14 @@
+ Volume in drive C has no label.
+ Volume Serial Number is 1225-5238
+
+ Directory of C:\inetpub
+
+05/04/2020  10:27    <DIR>          .
+05/04/2020  10:27    <DIR>          ..
+05/04/2020  10:27    <DIR>          custerr
+05/04/2020  22:28    <DIR>          history
+05/04/2020  11:30    <DIR>          logs
+05/04/2020  10:27    <DIR>          temp
+05/04/2020  22:13    <DIR>          wwwroot
+               0 File(s)              0 bytes
+               7 Dir(s)  42,951,110,656 bytes free

@@ -1,0 +1,23 @@
+ Volume in drive C has no label.
+ Volume Serial Number is 1225-5238
+
+ Directory of C:\inetpub\wwwroot\Web
+
+05/04/2020  22:16    <DIR>          .
+05/04/2020  22:16    <DIR>          ..
+05/04/2020  22:16    <DIR>          .vscode
+05/04/2020  22:16    <DIR>          App_Browsers
+05/04/2020  22:18    <DIR>          App_Data
+05/04/2020  22:16    <DIR>          App_Plugins
+05/04/2020  22:16    <DIR>          bin
+05/04/2020  22:16    <DIR>          Config
+05/04/2020  18:05               152 default.aspx
+05/04/2020  18:05                89 Global.asax
+05/04/2020  22:16    <DIR>          Media
+05/04/2020  23:02               192 robots.txt
+05/04/2020  22:16    <DIR>          Umbraco
+05/04/2020  22:16    <DIR>          Umbraco_Client
+05/04/2020  22:16    <DIR>          Views
+05/04/2020  21:51            34,029 Web.config
+               4 File(s)         34,462 bytes
+              12 Dir(s)  42,957,504,512 bytes free

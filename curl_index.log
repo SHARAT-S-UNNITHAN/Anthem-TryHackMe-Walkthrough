@@ -1,0 +1,18 @@
+* Uses proxy env variable no_proxy == '127.0.0.1,localhost,::1'
+*   Trying 10.48.191.46:80...
+* Established connection to 10.48.191.46 (10.48.191.46 port 80) from 192.168.152.49 port 34286 
+* using HTTP/1.x
+> GET / HTTP/1.1
+> Host: 10.48.191.46
+> User-Agent: curl/8.22.0
+> Accept: */*
+> 
+* Request completely sent off
+< HTTP/1.1 200 OK
+< Cache-Control: private
+< Content-Type: text/html; charset=utf-8
+< Date: Thu, 26 Nov 2026 05:18:03 GMT
+< Content-Length: 5349
+< 
+{ [2370 bytes data]
+* Connection #0 to host 10.48.191.46:80 left intact

@@ -1,0 +1,10 @@
+ Volume in drive C has no label.
+ Volume Serial Number is 1225-5238
+
+ Directory of C:\Users\SG\Downloads
+
+26/11/2026  05:21    <DIR>          .
+26/11/2026  05:21    <DIR>          ..
+26/11/2026  05:21               282 desktop.ini
+               1 File(s)            282 bytes
+               2 Dir(s)  42,952,343,552 bytes free

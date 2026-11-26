@@ -1,0 +1,10 @@
+# Nmap 7.991 scan initiated Thu Nov 26 10:45:14 2026 as: /usr/lib/nmap/nmap --privileged -Pn -p- -T4 --open -oN ports.txt 10.48.191.46
+Nmap scan report for 10.48.191.46
+Host is up (0.048s latency).
+Not shown: 65533 filtered tcp ports (no-response)
+Some closed ports may be reported as filtered due to --defeat-rst-ratelimit
+PORT     STATE SERVICE
+80/tcp   open  http
+3389/tcp open  ms-wbt-server
+
+# Nmap done at Thu Nov 26 10:47:58 2026 -- 1 IP address (1 host up) scanned in 163.59 seconds

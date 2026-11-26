@@ -1,0 +1,18 @@
+ Volume in drive C has no label.
+ Volume Serial Number is 1225-5238
+
+ Directory of C:\Users\Public
+
+05/04/2020  09:58    <DIR>          .
+05/04/2020  09:58    <DIR>          ..
+26/11/2026  05:21    <DIR>          AccountPictures
+05/04/2020  22:37    <DIR>          Desktop
+15/09/2018  07:16               174 desktop.ini
+05/04/2020  09:56    <DIR>          Documents
+15/09/2018  07:19    <DIR>          Downloads
+15/09/2018  07:19    <DIR>          Libraries
+15/09/2018  07:19    <DIR>          Music
+15/09/2018  07:19    <DIR>          Pictures
+15/09/2018  07:19    <DIR>          Videos
+               1 File(s)            174 bytes
+              10 Dir(s)  42,952,339,456 bytes free

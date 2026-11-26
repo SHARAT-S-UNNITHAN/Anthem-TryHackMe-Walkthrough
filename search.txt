@@ -1,0 +1,67 @@
+ Volume in drive C has no label.
+ Volume Serial Number is 1225-5238
+
+ Directory of C:\Users\SG\AppData\Local\Microsoft\Internet Explorer
+
+05/04/2020  22:40             6,494 brndlog.txt
+               1 File(s)          6,494 bytes
+
+ Directory of C:\Users\SG\AppData\Local\Packages\Microsoft.Windows.Cortana_cw5n1h2txyewy\LocalState\ConstraintIndex\Apps_{1745e207-e910-4b3c-a278-7dbd76419783}
+
+05/04/2020  22:40            14,877 0.0.filtertrie.intermediate.txt
+05/04/2020  22:40                 5 0.1.filtertrie.intermediate.txt
+05/04/2020  22:40                 5 0.2.filtertrie.intermediate.txt
+               3 File(s)         14,887 bytes
+
+ Directory of C:\Users\SG\AppData\Local\Packages\Microsoft.Windows.Cortana_cw5n1h2txyewy\LocalState\ConstraintIndex\Apps_{7e72fc14-dd44-4582-b5aa-f7887dab928d}
+
+05/04/2020  23:41            14,877 0.0.filtertrie.intermediate.txt
+05/04/2020  23:41                 5 0.1.filtertrie.intermediate.txt
+05/04/2020  23:41                 5 0.2.filtertrie.intermediate.txt
+               3 File(s)         14,887 bytes
+
+ Directory of C:\Users\SG\AppData\Local\Packages\Microsoft.Windows.Cortana_cw5n1h2txyewy\LocalState\ConstraintIndex\Apps_{a3ca0953-bca5-470b-a425-fde4cca3dac9}
+
+26/11/2026  05:21            14,877 0.0.filtertrie.intermediate.txt
+26/11/2026  05:21                 5 0.1.filtertrie.intermediate.txt
+26/11/2026  05:21                 5 0.2.filtertrie.intermediate.txt
+               3 File(s)         14,887 bytes
+
+ Directory of C:\Users\SG\AppData\Local\Packages\Microsoft.Windows.Cortana_cw5n1h2txyewy\LocalState\ConstraintIndex\Input_{7d7dd425-8ac9-4c9c-b4f1-76496b6a13cb}
+
+13/04/2016  08:55            31,582 appsconversions.txt
+15/04/2016  08:09           357,772 appsglobals.txt
+15/04/2016  08:09            81,243 appssynonyms.txt
+13/04/2016  08:55            31,582 settingsconversions.txt
+15/04/2016  08:09            40,479 settingsglobals.txt
+15/04/2016  08:09            76,566 settingssynonyms.txt
+               6 File(s)        619,224 bytes
+
+ Directory of C:\Users\SG\AppData\Local\Packages\Microsoft.Windows.Cortana_cw5n1h2txyewy\LocalState\ConstraintIndex\Settings_{96788be9-cb8c-49a3-9416-f9b06fe37d77}
+
+05/04/2020  22:44           189,012 0.0.filtertrie.intermediate.txt
+05/04/2020  22:44                 5 0.1.filtertrie.intermediate.txt
+05/04/2020  22:44                 5 0.2.filtertrie.intermediate.txt
+               3 File(s)        189,022 bytes
+
+ Directory of C:\Users\SG\AppData\Local\Packages\Microsoft.Windows.Cortana_cw5n1h2txyewy\LocalState\ConstraintIndex\Settings_{c747ad42-db2b-419a-949f-0380241e44b5}
+
+05/04/2020  22:44           189,012 0.0.filtertrie.intermediate.txt
+05/04/2020  22:44                 5 0.1.filtertrie.intermediate.txt
+05/04/2020  22:44                 5 0.2.filtertrie.intermediate.txt
+               3 File(s)        189,022 bytes
+
+ Directory of C:\Users\SG\AppData\Local\Packages\Microsoft.Windows.Cortana_cw5n1h2txyewy\LocalState\DeviceSearchCache
+
+26/11/2026  05:21            54,437 AppCache134401441041626326.txt
+05/04/2020  22:44           626,703 SettingsCache.txt
+               2 File(s)        681,140 bytes
+
+ Directory of C:\Users\SG\Desktop
+
+05/04/2020  22:41                14 user.txt
+               1 File(s)             14 bytes
+
+     Total Files Listed:
+              25 File(s)      1,729,577 bytes
+               0 Dir(s)  42,953,883,648 bytes free

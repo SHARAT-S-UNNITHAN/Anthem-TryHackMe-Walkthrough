@@ -1,0 +1,11 @@
+ Volume in drive C has no label.
+ Volume Serial Number is 1225-5238
+
+ Directory of C:\inetpub\wwwroot
+
+05/04/2020  22:13    <DIR>          .
+05/04/2020  22:13    <DIR>          ..
+05/04/2020  10:40    <DIR>          aspnet_client
+05/04/2020  22:16    <DIR>          Web
+               0 File(s)              0 bytes
+               4 Dir(s)  42,951,110,656 bytes free

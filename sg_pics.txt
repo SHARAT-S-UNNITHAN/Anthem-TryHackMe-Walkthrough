@@ -1,0 +1,10 @@
+ Volume in drive C has no label.
+ Volume Serial Number is 1225-5238
+
+ Directory of C:\Users\SG\Pictures
+
+26/11/2026  05:21    <DIR>          .
+26/11/2026  05:21    <DIR>          ..
+26/11/2026  05:21               504 desktop.ini
+               1 File(s)            504 bytes
+               2 Dir(s)  42,952,339,456 bytes free

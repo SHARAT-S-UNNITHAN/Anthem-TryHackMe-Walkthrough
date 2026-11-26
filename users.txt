@@ -1,0 +1,18 @@
+ Volume in drive C has no label.
+ Volume Serial Number is 1225-5238
+
+ Directory of C:\Users
+
+05/04/2020  22:40    <DIR>          .
+05/04/2020  22:40    <DIR>          ..
+05/04/2020  10:58    <DIR>          .NET v4.5
+05/04/2020  10:58    <DIR>          .NET v4.5 Classic
+05/04/2020  16:34    <DIR>          Administrator
+15/09/2018  07:28    <SYMLINKD>     All Users [C:\ProgramData]
+05/04/2020  09:56    <DIR>          Default
+15/09/2018  07:28    <JUNCTION>     Default User [C:\Users\Default]
+15/09/2018  07:16               174 desktop.ini
+05/04/2020  09:58    <DIR>          Public
+05/04/2020  22:40    <DIR>          SG
+               1 File(s)            174 bytes
+              10 Dir(s)  42,952,339,456 bytes free

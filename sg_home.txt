@@ -1,0 +1,39 @@
+ Volume in drive C has no label.
+ Volume Serial Number is 1225-5238
+
+ Directory of C:\Users\SG
+
+05/04/2020  22:40    <DIR>          .
+05/04/2020  22:40    <DIR>          ..
+26/11/2026  05:21    <DIR>          3D Objects
+05/04/2020  22:40    <DIR>          AppData
+05/04/2020  22:40    <JUNCTION>     Application Data [C:\Users\SG\AppData\Roaming]
+26/11/2026  05:21    <DIR>          Contacts
+05/04/2020  22:40    <JUNCTION>     Cookies [C:\Users\SG\AppData\Local\Microsoft\Windows\INetCookies]
+26/11/2026  05:21    <DIR>          Desktop
+26/11/2026  05:21    <DIR>          Documents
+26/11/2026  05:21    <DIR>          Downloads
+26/11/2026  05:21    <DIR>          Favorites
+26/11/2026  05:21    <DIR>          Links
+05/04/2020  22:40    <JUNCTION>     Local Settings [C:\Users\SG\AppData\Local]
+26/11/2026  05:21    <DIR>          Music
+05/04/2020  22:40    <JUNCTION>     My Documents [C:\Users\SG\Documents]
+05/04/2020  22:40    <JUNCTION>     NetHood [C:\Users\SG\AppData\Roaming\Microsoft\Windows\Network Shortcuts]
+26/11/2026  04:56           786,432 NTUSER.DAT
+05/04/2020  22:40           425,984 ntuser.dat.LOG1
+05/04/2020  22:40            73,728 ntuser.dat.LOG2
+05/04/2020  22:44            65,536 NTUSER.DAT{1c3790b4-b8ad-11e8-aa21-e41d2d101530}.TM.blf
+05/04/2020  22:40           524,288 NTUSER.DAT{1c3790b4-b8ad-11e8-aa21-e41d2d101530}.TMContainer00000000000000000001.regtrans-ms
+05/04/2020  22:40           524,288 NTUSER.DAT{1c3790b4-b8ad-11e8-aa21-e41d2d101530}.TMContainer00000000000000000002.regtrans-ms
+05/04/2020  22:40                20 ntuser.ini
+26/11/2026  05:21    <DIR>          Pictures
+05/04/2020  22:40    <JUNCTION>     PrintHood [C:\Users\SG\AppData\Roaming\Microsoft\Windows\Printer Shortcuts]
+05/04/2020  22:40    <JUNCTION>     Recent [C:\Users\SG\AppData\Roaming\Microsoft\Windows\Recent]
+26/11/2026  05:21    <DIR>          Saved Games
+26/11/2026  05:21    <DIR>          Searches
+05/04/2020  22:40    <JUNCTION>     SendTo [C:\Users\SG\AppData\Roaming\Microsoft\Windows\SendTo]
+05/04/2020  22:40    <JUNCTION>     Start Menu [C:\Users\SG\AppData\Roaming\Microsoft\Windows\Start Menu]
+05/04/2020  22:40    <JUNCTION>     Templates [C:\Users\SG\AppData\Roaming\Microsoft\Windows\Templates]
+26/11/2026  05:21    <DIR>          Videos
+               7 File(s)      2,400,276 bytes
+              25 Dir(s)  42,952,343,552 bytes free

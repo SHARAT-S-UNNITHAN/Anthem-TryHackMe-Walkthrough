@@ -1,0 +1,14 @@
+ Volume in drive C has no label.
+ Volume Serial Number is 1225-5238
+
+ Directory of C:\Users\SG\Documents
+
+26/11/2026  05:21    <DIR>          .
+26/11/2026  05:21    <DIR>          ..
+05/04/2020  22:44                 0 Default.rdp
+26/11/2026  05:21               402 desktop.ini
+05/04/2020  22:40    <JUNCTION>     My Music [C:\Users\SG\Music]
+05/04/2020  22:40    <JUNCTION>     My Pictures [C:\Users\SG\Pictures]
+05/04/2020  22:40    <JUNCTION>     My Videos [C:\Users\SG\Videos]
+               2 File(s)            402 bytes
+               5 Dir(s)  42,952,343,552 bytes free

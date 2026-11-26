@@ -1,0 +1,21 @@
+INFO: Could not find files for the given pattern(s).
+C:\Users\SG\AppData\Local\Packages\Microsoft.Windows.Cortana_cw5n1h2txyewy\LocalState\AppIconCache\100\Microsoft_Windows_AdministrativeTools
+C:\Users\SG\AppData\Local\Packages\Microsoft.Windows.Cortana_cw5n1h2txyewy\LocalState\AppIconCache\100\{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}_wbadmin_msc
+C:\Users\SG\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\System Tools\Administrative Tools.lnk
+FINDSTR: Cannot open C:\Users\SG\AppData\Local\Microsoft\Windows\Notifications\WPNPRMRY.tmp
+FINDSTR: Cannot open C:\Users\SG\AppData\Local\Microsoft\Windows\UsrClass.dat
+FINDSTR: Cannot open C:\Users\SG\AppData\Local\Microsoft\Windows\UsrClass.dat.LOG1
+FINDSTR: Cannot open C:\Users\SG\AppData\Local\Microsoft\Windows\UsrClass.dat.LOG2
+FINDSTR: Cannot open C:\Users\SG\AppData\Local\Microsoft\Windows\WebCache\V01.log
+FINDSTR: Cannot open C:\Users\SG\AppData\Local\Microsoft\Windows\WebCache\WebCacheV01.dat
+FINDSTR: Cannot open C:\Users\SG\AppData\Local\Microsoft\Windows\WebCache\WebCacheV01.jfm
+FINDSTR: Cannot open C:\Users\SG\AppData\Local\Microsoft\Windows\WebCacheLock.dat
+FINDSTR: Cannot open C:\Users\SG\AppData\Local\Packages\Microsoft.Windows.Cortana_cw5n1h2txyewy\Settings\settings.dat
+FINDSTR: Cannot open C:\Users\SG\AppData\Local\Packages\Microsoft.Windows.Cortana_cw5n1h2txyewy\Settings\settings.dat.LOG1
+FINDSTR: Cannot open C:\Users\SG\AppData\Local\Packages\Microsoft.Windows.Cortana_cw5n1h2txyewy\Settings\settings.dat.LOG2
+FINDSTR: Cannot open C:\Users\SG\AppData\Local\Packages\Microsoft.Windows.ShellExperienceHost_cw5n1h2txyewy\Settings\settings.dat
+FINDSTR: Cannot open C:\Users\SG\AppData\Local\Packages\Microsoft.Windows.ShellExperienceHost_cw5n1h2txyewy\Settings\settings.dat.LOG1
+FINDSTR: Cannot open C:\Users\SG\AppData\Local\Packages\Microsoft.Windows.ShellExperienceHost_cw5n1h2txyewy\Settings\settings.dat.LOG2
+FINDSTR: Cannot open C:\Users\SG\NTUSER.DAT
+FINDSTR: Cannot open C:\Users\SG\ntuser.dat.LOG1
+FINDSTR: Cannot open C:\Users\SG\ntuser.dat.LOG2

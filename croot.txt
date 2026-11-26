@@ -1,0 +1,20 @@
+ Volume in drive C has no label.
+ Volume Serial Number is 1225-5238
+
+ Directory of C:\
+
+15/09/2018  07:19    <DIR>          $Recycle.Bin
+05/04/2020  22:42    <DIR>          backup
+05/04/2020  09:56    <JUNCTION>     Documents and Settings [C:\Users]
+05/04/2020  10:27    <DIR>          inetpub
+26/11/2026  04:44     1,207,959,552 pagefile.sys
+03/01/2021  17:45    <DIR>          PerfLogs
+12/04/2020  15:36    <DIR>          Program Files
+05/04/2020  22:38    <DIR>          Program Files (x86)
+05/04/2020  13:46    <DIR>          ProgramData
+05/04/2020  09:56    <DIR>          Recovery
+05/04/2020  09:55    <DIR>          System Volume Information
+05/04/2020  22:40    <DIR>          Users
+03/01/2021  17:45    <DIR>          Windows
+               1 File(s)  1,207,959,552 bytes
+              12 Dir(s)  42,952,339,456 bytes free

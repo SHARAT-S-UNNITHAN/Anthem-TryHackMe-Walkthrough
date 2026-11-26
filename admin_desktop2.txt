@@ -1,0 +1,11 @@
+ Volume in drive C has no label.
+ Volume Serial Number is 1225-5238
+
+ Directory of C:\Users\Administrator\Desktop
+
+03/01/2021  17:49    <DIR>          .
+03/01/2021  17:49    <DIR>          ..
+03/01/2021  17:49               282 desktop.ini
+05/04/2020  10:54                17 root.txt
+               2 File(s)            299 bytes
+               2 Dir(s)  42,945,466,368 bytes free
