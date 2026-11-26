@@ -271,3 +271,4 @@ THM{Y0U_4R3_1337}
 - Write down dead ends — they save time
 ```
 DETAIL NOTES AND WALKTHORUGH AVAIALABLE IN MEDIUM AND ALSO IN THE ABOOVE REPO AS ADVANCED WALKTHROUGH NAMED.
+MEDIUM-https://medium.com/@sharatsunnithan3/tryhackme-anthem-from-web-enumeration-to-windows-administrator-49193ec6e72c
